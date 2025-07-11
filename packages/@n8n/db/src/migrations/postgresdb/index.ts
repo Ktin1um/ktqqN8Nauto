@@ -189,4 +189,5 @@ export const postgresMigrations: Migration[] = [
 	AddRolesTables1750252139167,
 	LinkRoleToUserTable1750252139168,
 	AddInputsOutputsToTestCaseExecution1752669793000,
+	AddScopeTables1750252139166,
 ];
