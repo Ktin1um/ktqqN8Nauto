@@ -120,8 +120,6 @@ export abstract class BaseCommand<F = never> {
 					await this.exitWithCrash('There was an error running database migrations', error),
 			);
 
-		await Container.get(AuthRolesService).init();
-
 		Container.get(DeprecationService).warn();
 
 		if (process.env.EXECUTIONS_PROCESS === 'own') process.exit(-1);
