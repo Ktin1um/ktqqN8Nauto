@@ -1,5 +1,4 @@
-import { ALL_API_KEY_SCOPES } from './scope-information';
-import type { ApiKeyScope, AuthPrincipal, GlobalRole } from './types.ee';
+import { isApiKeyScope, type ApiKeyScope, type AuthPrincipal, type GlobalRole } from './types.ee';
 
 export const OWNER_API_KEY_SCOPES: ApiKeyScope[] = [
 	'user:read',
@@ -73,9 +72,7 @@ const MAP_ROLE_SCOPES: Record<GlobalRole, ApiKeyScope[]> = {
 };
 
 export const getApiKeyScopesForRole = (user: AuthPrincipal) => {
-	return user.role.scopes
-		.map((scope) => scope.slug)
-		.filter((scope) => ALL_API_KEY_SCOPES.includes(scope));
+	return user.role.scopes.map((scope) => scope.slug).filter(isApiKeyScope);
 };
 
 export const getOwnerOnlyApiKeyScopes = () => {

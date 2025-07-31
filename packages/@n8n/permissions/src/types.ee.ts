@@ -10,6 +10,7 @@ import type {
 	teamRoleSchema,
 	workflowSharingRoleSchema,
 } from './schemas.ee';
+import { ALL_API_KEY_SCOPES } from './scope-information';
 
 export type ScopeInformation = {
 	displayName: string;
@@ -109,5 +110,9 @@ type AllApiKeyScopesObject = {
 };
 
 export type ApiKeyScope = AllApiKeyScopesObject[PublicApiKeyResources];
+
+export function isApiKeyScope(scope: Scope): scope is ApiKeyScope {
+	return ALL_API_KEY_SCOPES.includes(scope);
+}
 
 // #endregion
