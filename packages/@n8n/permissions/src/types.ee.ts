@@ -76,12 +76,21 @@ export type AllRolesMap = {
 	workflow: Array<RoleObject<WorkflowSharingRole>>;
 };
 
+export type DbScope = {
+	slug: Scope;
+};
+
+export type DbRole = {
+	slug: string;
+	scopes: DbScope[];
+};
+
 /**
  * Represents an authenticated entity in the system that can have specific permissions via a role.
  * @property role - The global role this principal has
  */
 export type AuthPrincipal = {
-	role: GlobalRole;
+	role: DbRole;
 };
 
 // #region Public API
