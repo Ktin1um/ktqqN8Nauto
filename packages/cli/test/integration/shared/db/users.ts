@@ -34,8 +34,7 @@ async function handlePasswordSetup(password: string | null | undefined): Promise
 
 /** Store a new user object, defaulting to a `member` */
 export async function newUser(attributes: DeepPartial<User> = {}): Promise<User> {
-	const { email, password, firstName, lastName, ...rest } = attributes;
-	const role = typeof attributes.role === 'string' ? { slug: attributes.role } : attributes.role;
+	const { email, password, firstName, lastName, role, ...rest } = attributes;
 	return Container.get(UserRepository).create({
 		email: email ?? randomEmail(),
 		password: await handlePasswordSetup(password),
@@ -109,7 +108,7 @@ export const addApiKey = async (
 	return await Container.get(PublicApiKeyService).createPublicApiKeyForUser(user, {
 		label: randomName(),
 		expiresAt,
-		scopes: scopes.length ? scopes : getApiKeyScopesForRole(user.role),
+		scopes: scopes.length ? scopes : getApiKeyScopesForRole(user),
 	});
 };
 
@@ -165,7 +164,7 @@ export async function createUserShell(role: GlobalRole): Promise<User> {
  */
 export async function createManyUsers(
 	amount: number,
-	attributes: Partial<User> = {},
+	attributes: DeepPartial<User> = {},
 ): Promise<User[]> {
 	const result = await Promise.all(
 		Array(amount)
