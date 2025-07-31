@@ -268,9 +268,7 @@ export declare namespace ActiveWorkflowRequest {
 // ----------------------------------
 
 export declare namespace ProjectRequest {
-	type GetMyProjectsResponse = Array<
-		Project & { role: ProjectRole | GlobalRole; scopes?: Scope[] }
-	>;
+	type GetMyProjectsResponse = Array<Project & { role: string; scopes?: Scope[] }>;
 
 	type ProjectRelationResponse = {
 		id: string;

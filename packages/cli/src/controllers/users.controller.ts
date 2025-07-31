@@ -142,7 +142,7 @@ export class UsersController {
 			throw new NotFoundError('User not found');
 		}
 
-		if (req.user.role === 'global:admin' && user.role === 'global:owner') {
+		if (req.user.role.slug === 'global:admin' && user.role.slug === 'global:owner') {
 			throw new ForbiddenError('Admin cannot reset password of global owner');
 		}
 
@@ -194,7 +194,7 @@ export class UsersController {
 			);
 		}
 
-		if (userToDelete.role === 'global:owner') {
+		if (userToDelete.role.slug === 'global:owner') {
 			throw new ForbiddenError('Instance owner cannot be deleted.');
 		}
 
@@ -307,11 +307,11 @@ export class UsersController {
 			throw new NotFoundError(NO_USER);
 		}
 
-		if (req.user.role === 'global:admin' && targetUser.role === 'global:owner') {
+		if (req.user.role.slug === 'global:admin' && targetUser.role.slug === 'global:owner') {
 			throw new ForbiddenError(NO_ADMIN_ON_OWNER);
 		}
 
-		if (req.user.role === 'global:owner' && targetUser.role === 'global:owner') {
+		if (req.user.role.slug === 'global:owner' && targetUser.role.slug === 'global:owner') {
 			throw new ForbiddenError(NO_OWNER_ON_OWNER);
 		}
 

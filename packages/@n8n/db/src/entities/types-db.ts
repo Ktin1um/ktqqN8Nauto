@@ -105,7 +105,7 @@ export interface PublicUser {
 	passwordResetToken?: string;
 	createdAt: Date;
 	isPending: boolean;
-	role?: GlobalRole;
+	role?: string;
 	globalScopes?: Scope[];
 	signInType: AuthProviderType;
 	disabled: boolean;

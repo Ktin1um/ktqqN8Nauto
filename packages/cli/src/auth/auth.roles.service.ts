@@ -66,4 +66,22 @@ export class AuthRolesService {
 		await this.syncScopes();
 		this.logger.info('AuthRolesService initialized successfully.');
 	}
+
+	async getRoleScopes(roleSlug: string, filters?: Resource[]): Promise<PermissionScope[]> {
+		const role = await this.roleRepository.findOne({
+			where: { slug: roleSlug },
+			relations: ['scopes'],
+		});
+
+		if (!role) {
+			this.logger.warn(`Role with slug ${roleSlug} not found.`);
+			return [];
+		}
+
+		return role.scopes
+			.map((scope) => scope.slug)
+			.filter((scope) => {
+				return !filters || filters.includes(scope.split(':')[0] as Resource);
+			});
+	}
 }
