@@ -65,7 +65,7 @@ describe('OwnerController', () => {
 		it('should setup the instance owner successfully', async () => {
 			const user = mock<User>({
 				id: 'userId',
-				role: 'global:owner',
+				role: { slug: 'global:owner' },
 				authIdentities: [],
 			});
 			const browserId = 'test-browser-id';

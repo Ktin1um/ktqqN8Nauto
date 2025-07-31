@@ -8,7 +8,7 @@ import type {
 	ListQueryDb,
 	WorkflowHistory,
 } from '@n8n/db';
-import type { AssignableGlobalRole, GlobalRole, ProjectRole, Scope } from '@n8n/permissions';
+import type { AssignableGlobalRole, ProjectRole, Scope } from '@n8n/permissions';
 import type {
 	ICredentialDataDecryptedObject,
 	INodeCredentialTestRequest,

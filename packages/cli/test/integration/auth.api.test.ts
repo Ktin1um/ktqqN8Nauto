@@ -36,7 +36,7 @@ describe('POST /login', () => {
 	beforeEach(async () => {
 		owner = await createUser({
 			password: ownerPassword,
-			role: 'global:owner',
+			role: { slug: 'global:owner' },
 		});
 	});
 
@@ -140,7 +140,7 @@ describe('POST /login', () => {
 		license.setQuota('quota:users', 0);
 		const ownerUser = await createUser({
 			password: randomValidPassword(),
-			role: 'global:owner',
+			role: { slug: 'global:owner' },
 		});
 
 		const response = await testServer.authAgentFor(ownerUser).get('/login');
@@ -252,7 +252,7 @@ describe('GET /login', () => {
 	});
 
 	test('should return logged-in owner', async () => {
-		const owner = await createUser({ role: 'global:owner' });
+		const owner = await createUser({ role: { slug: 'global:owner' } });
 
 		const response = await testServer.authAgentFor(owner).get('/login');
 
@@ -287,7 +287,7 @@ describe('GET /login', () => {
 	});
 
 	test('should return logged-in member', async () => {
-		const member = await createUser({ role: 'global:member' });
+		const member = await createUser({ role: { slug: 'global:member' } });
 
 		const response = await testServer.authAgentFor(member).get('/login');
 
@@ -326,7 +326,7 @@ describe('GET /resolve-signup-token', () => {
 	beforeEach(async () => {
 		owner = await createUser({
 			password: ownerPassword,
-			role: 'global:owner',
+			role: { slug: 'global:owner' },
 		});
 		authOwnerAgent = testServer.authAgentFor(owner);
 	});
@@ -363,7 +363,7 @@ describe('GET /resolve-signup-token', () => {
 	});
 
 	test('should fail with invalid inputs', async () => {
-		const { id: inviteeId } = await createUser({ role: 'global:member' });
+		const { id: inviteeId } = await createUser({ role: { slug: 'global:member' } });
 
 		const first = await authOwnerAgent.get('/resolve-signup-token').query({ inviterId: owner.id });
 
@@ -396,7 +396,7 @@ describe('GET /resolve-signup-token', () => {
 
 describe('POST /logout', () => {
 	test('should log user out', async () => {
-		const owner = await createUser({ role: 'global:owner' });
+		const owner = await createUser({ role: { slug: 'global:owner' } });
 		const ownerAgent = testServer.authAgentFor(owner);
 		// @ts-expect-error `accessInfo` types are incorrect
 		const cookie = ownerAgent.jar.getCookie(AUTH_COOKIE_NAME, { path: '/' });

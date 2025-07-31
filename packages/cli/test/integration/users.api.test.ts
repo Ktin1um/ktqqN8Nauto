@@ -61,26 +61,26 @@ describe('GET /users', () => {
 		userRepository = Container.get(UserRepository);
 
 		owner = await createUser({
-			role: 'global:owner',
+			role: { slug: 'global:owner' },
 			email: 'owner@n8n.io',
 			firstName: 'OwnerFirstName',
 			lastName: 'OwnerLastName',
 		});
 		member1 = await createUser({
-			role: 'global:member',
+			role: { slug: 'global:member' },
 			email: 'member1@n8n.io',
 			firstName: 'Member1FirstName',
 			lastName: 'Member1LastName',
 			mfaEnabled: true,
 		});
 		member2 = await createUser({
-			role: 'global:member',
+			role: { slug: 'global:member' },
 			email: 'member2@n8n.io',
 			firstName: 'Member2FirstName',
 			lastName: 'Member2LastName',
 		});
 		await createUser({
-			role: 'global:admin',
+			role: { slug: 'global:admin' },
 			email: 'admin@n8n.io',
 			firstName: 'AdminFirstName',
 			lastName: 'AdminLastName',
@@ -575,7 +575,7 @@ describe('GET /users', () => {
 			let pendingUser: User;
 			beforeAll(async () => {
 				pendingUser = await createUser({
-					role: 'global:member',
+					role: { slug: 'global:member' },
 					email: 'pending@n8n.io',
 					firstName: 'PendingFirstName',
 					lastName: 'PendingLastName',
@@ -723,14 +723,14 @@ describe('GET /users', () => {
 
 			test('should sort by firstName and lastName combined', async () => {
 				const user1 = await createUser({
-					role: 'global:member',
+					role: { slug: 'global:member' },
 					email: 'memberz1@n8n.io',
 					firstName: 'ZZZFirstName',
 					lastName: 'ZZZLastName',
 				});
 
 				const user2 = await createUser({
-					role: 'global:member',
+					role: { slug: 'global:member' },
 					email: 'memberz2@n8n.io',
 					firstName: 'ZZZFirstName',
 					lastName: 'ZZYLastName',

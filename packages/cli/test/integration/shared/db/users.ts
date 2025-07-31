@@ -54,7 +54,7 @@ export async function createUser(attributes: DeepPartial<User> = {}): Promise<Us
 	return user;
 }
 
-export async function createLdapUser(attributes: Partial<User>, ldapId: string): Promise<User> {
+export async function createLdapUser(attributes: DeepPartial<User>, ldapId: string): Promise<User> {
 	const user = await createUser(attributes);
 	await Container.get(AuthIdentityRepository).save(AuthIdentity.create(user, ldapId, 'ldap'));
 	return user;

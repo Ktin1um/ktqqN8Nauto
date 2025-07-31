@@ -17,9 +17,9 @@ let projectService: ProjectService;
 
 beforeAll(async () => {
 	await testDb.init();
-	owner = await createUser({ role: 'global:owner' });
-	member = await createUser({ role: 'global:member' });
-	anotherMember = await createUser({ role: 'global:member' });
+	owner = await createUser({ role: { slug: 'global:owner' } });
+	member = await createUser({ role: { slug: 'global:member' } });
+	anotherMember = await createUser({ role: { slug: 'global:member' } });
 	const licenseMock = mock<LicenseState>();
 	licenseMock.isSharingLicensed.mockReturnValue(true);
 	licenseMock.getMaxTeamProjects.mockReturnValue(-1);
@@ -39,7 +39,6 @@ afterAll(async () => {
 describe('WorkflowSharingService', () => {
 	describe('getSharedWorkflowIds', () => {
 		it('should show all workflows to owners', async () => {
-			owner.role = 'global:owner';
 			const workflow1 = await createWorkflow({}, member);
 			const workflow2 = await createWorkflow({}, anotherMember);
 			const sharedWorkflowIds = await workflowSharingService.getSharedWorkflowIds(owner, {
@@ -51,7 +50,6 @@ describe('WorkflowSharingService', () => {
 		});
 
 		it('should show shared workflows to users', async () => {
-			member.role = 'global:member';
 			const workflow1 = await createWorkflow({}, anotherMember);
 			const workflow2 = await createWorkflow({}, anotherMember);
 			const workflow3 = await createWorkflow({}, anotherMember);

@@ -16,10 +16,10 @@ describe('CredentialsFinderService', () => {
 		const sharedCredential = mock<SharedCredentials>();
 		sharedCredential.credentials = mock<CredentialsEntity>({ id: credentialsId });
 		const owner = mock<User>({
-			role: 'global:owner',
+			role: { slug: 'global:owner' },
 		});
 		const member = mock<User>({
-			role: 'global:member',
+			role: { slug: 'global:member' },
 			id: 'test',
 		});
 
