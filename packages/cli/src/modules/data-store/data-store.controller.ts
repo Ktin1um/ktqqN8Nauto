@@ -1,4 +1,4 @@
-import type {
+import {
 	AddDataStoreColumnDto,
 	CreateDataStoreDto,
 	DeleteDataStoreColumnDto,
@@ -18,9 +18,9 @@ import {
 	ProjectScope,
 	RestController,
 } from '@n8n/decorators';
+import { DataStoreRows } from 'n8n-workflow';
 
 import { DataStoreService } from './data-store.service';
-import { DataStoreRows } from 'n8n-workflow';
 
 @RestController('/projects/:projectId/data-stores')
 export class DataStoreController {
