@@ -1,7 +1,7 @@
 import type { UnixTimestamp, UpdateApiKeyRequestDto } from '@n8n/api-types';
 import type { CreateApiKeyRequestDto } from '@n8n/api-types/src/dto/api-keys/create-api-key-request.dto';
 import type { AuthenticatedRequest, User } from '@n8n/db';
-import { ApiKey, ApiKeyRepository, UserRepository } from '@n8n/db';
+import { ApiKey, ApiKeyRepository, Role, UserRepository } from '@n8n/db';
 import { Service } from '@n8n/di';
 import type { ApiKeyScope, AuthPrincipal } from '@n8n/permissions';
 import { getApiKeyScopesForRole, getOwnerOnlyApiKeyScopes } from '@n8n/permissions';
@@ -80,12 +80,18 @@ export class PublicApiKeyService {
 	}
 
 	private async getUserForApiKey(apiKey: string) {
-		return await this.userRepository
-			.createQueryBuilder('user')
-			.innerJoin(ApiKey, 'apiKey', 'apiKey.userId = user.id')
-			.where('apiKey.apiKey = :apiKey', { apiKey })
-			.select('user')
-			.getOne();
+		return await this.userRepository.findOneBy({
+			apiKeys: {
+				apiKey,
+			},
+		});
+
+		// .createQueryBuilder('user')
+		// .innerJoin(ApiKey, 'apiKey', 'apiKey.userId = user.id')
+		// .where('apiKey.apiKey = :apiKey', { apiKey })
+		// .select('user')
+		// .
+		// .getOne();
 	}
 
 	/**

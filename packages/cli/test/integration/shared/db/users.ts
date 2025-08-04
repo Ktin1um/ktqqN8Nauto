@@ -1,5 +1,12 @@
 import { randomEmail, randomName, randomValidPassword } from '@n8n/backend-test-utils';
-import { AuthIdentity, AuthIdentityRepository, UserRepository } from '@n8n/db';
+import {
+	AuthIdentity,
+	AuthIdentityRepository,
+	GLOBAL_ADMIN_ROLE,
+	GLOBAL_MEMBER_ROLE,
+	GLOBAL_OWNER_ROLE,
+	UserRepository,
+} from '@n8n/db';
 import { type User } from '@n8n/db';
 import { Container } from '@n8n/di';
 import type { ApiKeyScope, GlobalRole } from '@n8n/permissions';
@@ -40,9 +47,7 @@ export async function newUser(attributes: DeepPartial<User> = {}): Promise<User>
 		password: await handlePasswordSetup(password),
 		firstName: firstName ?? randomName(),
 		lastName: lastName ?? randomName(),
-		role: role ?? {
-			slug: 'global:member',
-		},
+		role: role ?? GLOBAL_MEMBER_ROLE,
 		...rest,
 	});
 }
@@ -137,15 +142,15 @@ export async function createAdminWithApiKey({ expiresAt = null, scopes = [] }: A
 }
 
 export async function createOwner() {
-	return await createUser({ role: { slug: 'global:owner' } });
+	return await createUser({ role: GLOBAL_OWNER_ROLE });
 }
 
 export async function createMember() {
-	return await createUser({ role: { slug: 'global:member' } });
+	return await createUser({ role: GLOBAL_MEMBER_ROLE });
 }
 
 export async function createAdmin() {
-	return await createUser({ role: { slug: 'global:admin' } });
+	return await createUser({ role: GLOBAL_ADMIN_ROLE });
 }
 
 export async function createUserShell(role: GlobalRole): Promise<User> {
