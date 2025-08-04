@@ -9,7 +9,7 @@ import {
 } from '@n8n/backend-common';
 import { GlobalConfig } from '@n8n/config';
 import { LICENSE_FEATURES } from '@n8n/constants';
-import { AuthRolesService, DbConnection } from '@n8n/db';
+import { DbConnection } from '@n8n/db';
 import { Container } from '@n8n/di';
 import {
 	BinaryDataConfig,
