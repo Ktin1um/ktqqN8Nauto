@@ -5,14 +5,19 @@ import { type DataStoreEntity } from '@/features/dataStore/datastore.types';
 
 export const fetchDataStores = async (
 	context: IRestApiContext,
-	projectId?: string,
+	projectId: string,
 	options?: {
 		page?: number;
 		pageSize?: number;
 	},
 ) => {
-	return await getFullApiResponse<DataStoreEntity[]>(context, 'GET', '/data-stores', {
-		projectId,
-		options,
-	});
+	return await getFullApiResponse<DataStoreEntity[]>(
+		context,
+		'GET',
+		`/projects/${projectId}/data-stores`,
+		{
+			projectId,
+			options,
+		},
+	);
 };
