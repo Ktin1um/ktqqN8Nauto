@@ -9,26 +9,41 @@ import {
 	type INodeTypeBaseDescription,
 	type INodeTypeDescription,
 	NodeConnectionTypes,
+	NodeOperationError,
 } from 'n8n-workflow';
 
-import type { OperationType, TodoistProjectType } from './Service';
-import { TodoistService } from './Service';
+import type { TaskOperationType, TodoistProjectType } from './Service';
+import {
+	TodoistService,
+	isProjectOperationType,
+	isSectionOperationType,
+	isCommentOperationType,
+	isLabelOperationType,
+} from './Service';
 import { todoistApiRequest } from '../GenericFunctions';
 
-// interface IBodyCreateTask {
-// 	content?: string;
-// 	description?: string;
-// 	project_id?: number;
-// 	section_id?: number;
-// 	parent_id?: number;
-// 	order?: number;
-// 	label_ids?: number[];
-// 	priority?: number;
-// 	due_string?: string;
-// 	due_datetime?: string;
-// 	due_date?: string;
-// 	due_lang?: string;
-// }
+const TODOIST_COLOR_OPTIONS: INodePropertyOptions[] = [
+	{ name: 'Berry Red', value: 'berry_red' },
+	{ name: 'Red', value: 'red' },
+	{ name: 'Orange', value: 'orange' },
+	{ name: 'Yellow', value: 'yellow' },
+	{ name: 'Olive Green', value: 'olive_green' },
+	{ name: 'Lime Green', value: 'lime_green' },
+	{ name: 'Green', value: 'green' },
+	{ name: 'Mint Green', value: 'mint_green' },
+	{ name: 'Teal', value: 'teal' },
+	{ name: 'Sky Blue', value: 'sky_blue' },
+	{ name: 'Light Blue', value: 'light_blue' },
+	{ name: 'Blue', value: 'blue' },
+	{ name: 'Grape', value: 'grape' },
+	{ name: 'Violet', value: 'violet' },
+	{ name: 'Lavender', value: 'lavender' },
+	{ name: 'Magenta', value: 'magenta' },
+	{ name: 'Salmon', value: 'salmon' },
+	{ name: 'Charcoal', value: 'charcoal' },
+	{ name: 'Grey', value: 'grey' },
+	{ name: 'Taupe', value: 'taupe' },
+];
 
 const versionDescription: INodeTypeDescription = {
 	displayName: 'Todoist',
@@ -86,11 +101,32 @@ const versionDescription: INodeTypeDescription = {
 			name: 'resource',
 			type: 'options',
 			noDataExpression: true,
+			// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 			options: [
 				{
 					name: 'Task',
 					value: 'task',
 					description: 'Task resource',
+				},
+				{
+					name: 'Project',
+					value: 'project',
+					description: 'Project resource',
+				},
+				{
+					name: 'Section',
+					value: 'section',
+					description: 'Section resource',
+				},
+				{
+					name: 'Comment',
+					value: 'comment',
+					description: 'Comment resource',
+				},
+				{
+					name: 'Label',
+					value: 'label',
+					description: 'Label resource',
 				},
 			],
 			default: 'task',
@@ -145,6 +181,12 @@ const versionDescription: INodeTypeDescription = {
 					action: 'Move a task',
 				},
 				{
+					name: 'Quick Add',
+					value: 'quickAdd',
+					description: 'Quick add a task using natural language',
+					action: 'Quick add a task',
+				},
+				{
 					name: 'Reopen',
 					value: 'reopen',
 					description: 'Reopen a task',
@@ -160,6 +202,208 @@ const versionDescription: INodeTypeDescription = {
 					value: 'update',
 					description: 'Update a task',
 					action: 'Update a task',
+				},
+			],
+			default: 'create',
+		},
+		// Project operations
+		{
+			displayName: 'Operation',
+			name: 'operation',
+			type: 'options',
+			noDataExpression: true,
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['project'],
+				},
+			},
+			options: [
+				{
+					name: 'Archive',
+					value: 'archive',
+					description: 'Archive a project',
+					action: 'Archive a project',
+				},
+				{
+					name: 'Create',
+					value: 'create',
+					description: 'Create a new project',
+					action: 'Create a project',
+				},
+				{
+					name: 'Delete',
+					value: 'delete',
+					description: 'Delete a project',
+					action: 'Delete a project',
+				},
+				{
+					name: 'Get',
+					value: 'get',
+					description: 'Get a project',
+					action: 'Get a project',
+				},
+				{
+					name: 'Get Collaborators',
+					value: 'getCollaborators',
+					description: 'Get project collaborators',
+					action: 'Get project collaborators',
+				},
+				{
+					name: 'Get Many',
+					value: 'getAll',
+					description: 'Get many projects',
+					action: 'Get many projects',
+				},
+				{
+					name: 'Unarchive',
+					value: 'unarchive',
+					description: 'Unarchive a project',
+					action: 'Unarchive a project',
+				},
+				{
+					name: 'Update',
+					value: 'update',
+					description: 'Update a project',
+					action: 'Update a project',
+				},
+			],
+			default: 'create',
+		},
+		// Section operations
+		{
+			displayName: 'Operation',
+			name: 'operation',
+			type: 'options',
+			noDataExpression: true,
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['section'],
+				},
+			},
+			options: [
+				{
+					name: 'Create',
+					value: 'create',
+					description: 'Create a new section',
+					action: 'Create a section',
+				},
+				{
+					name: 'Delete',
+					value: 'delete',
+					description: 'Delete a section',
+					action: 'Delete a section',
+				},
+				{
+					name: 'Get',
+					value: 'get',
+					description: 'Get a section',
+					action: 'Get a section',
+				},
+				{
+					name: 'Get Many',
+					value: 'getAll',
+					description: 'Get many sections',
+					action: 'Get many sections',
+				},
+				{
+					name: 'Update',
+					value: 'update',
+					description: 'Update a section',
+					action: 'Update a section',
+				},
+			],
+			default: 'create',
+		},
+		// Comment operations
+		{
+			displayName: 'Operation',
+			name: 'operation',
+			type: 'options',
+			noDataExpression: true,
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['comment'],
+				},
+			},
+			options: [
+				{
+					name: 'Create',
+					value: 'create',
+					description: 'Create a new comment',
+					action: 'Create a comment',
+				},
+				{
+					name: 'Delete',
+					value: 'delete',
+					description: 'Delete a comment',
+					action: 'Delete a comment',
+				},
+				{
+					name: 'Get',
+					value: 'get',
+					description: 'Get a comment',
+					action: 'Get a comment',
+				},
+				{
+					name: 'Get Many',
+					value: 'getAll',
+					description: 'Get many comments',
+					action: 'Get many comments',
+				},
+				{
+					name: 'Update',
+					value: 'update',
+					description: 'Update a comment',
+					action: 'Update a comment',
+				},
+			],
+			default: 'create',
+		},
+		// Label operations
+		{
+			displayName: 'Operation',
+			name: 'operation',
+			type: 'options',
+			noDataExpression: true,
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['label'],
+				},
+			},
+			options: [
+				{
+					name: 'Create',
+					value: 'create',
+					description: 'Create a new label',
+					action: 'Create a label',
+				},
+				{
+					name: 'Delete',
+					value: 'delete',
+					description: 'Delete a label',
+					action: 'Delete a label',
+				},
+				{
+					name: 'Get',
+					value: 'get',
+					description: 'Get a label',
+					action: 'Get a label',
+				},
+				{
+					name: 'Get Many',
+					value: 'getAll',
+					description: 'Get many labels',
+					action: 'Get many labels',
+				},
+				{
+					name: 'Update',
+					value: 'update',
+					description: 'Update a label',
+					action: 'Update a label',
 				},
 			],
 			default: 'create',
@@ -271,7 +515,8 @@ const versionDescription: INodeTypeDescription = {
 			],
 		},
 		{
-			displayName: 'Label Names or IDs',
+			// eslint-disable-next-line n8n-nodes-base/node-param-display-name-wrong-for-dynamic-multi-options
+			displayName: 'Label Names',
 			name: 'labels',
 			type: 'multiOptions',
 			typeOptions: {
@@ -303,6 +548,62 @@ const versionDescription: INodeTypeDescription = {
 			default: '',
 			required: true,
 			description: 'Task content',
+		},
+		{
+			displayName: 'Text',
+			name: 'text',
+			type: 'string',
+			typeOptions: {
+				rows: 3,
+			},
+			displayOptions: {
+				show: {
+					resource: ['task'],
+					operation: ['quickAdd'],
+				},
+			},
+			default: '',
+			required: true,
+			description:
+				'Natural language text for quick adding task (e.g., "Buy milk @Grocery #shopping tomorrow"). It can include a due date in free form text, a project name starting with the "#" character (without spaces), a label starting with the "@" character, an assignee starting with the "+" character, a priority (e.g., p1), a deadline between "{}" (e.g. {in 3 days}), or a description starting from "//" until the end of the text.',
+		},
+		{
+			displayName: 'Additional Fields',
+			name: 'options',
+			type: 'collection',
+			placeholder: 'Add Field',
+			default: {},
+			displayOptions: {
+				show: {
+					resource: ['task'],
+					operation: ['quickAdd'],
+				},
+			},
+			options: [
+				{
+					displayName: 'Note',
+					name: 'note',
+					type: 'string',
+					default: '',
+					description: 'The content of the note',
+				},
+				{
+					displayName: 'Reminder',
+					name: 'reminder',
+					type: 'string',
+					default: '',
+					description: 'The date of the reminder, added in free form text',
+				},
+				{
+					displayName: 'Auto Reminder',
+					name: 'auto_reminder',
+					type: 'boolean',
+					default: false,
+					// eslint-disable-next-line n8n-nodes-base/node-param-description-boolean-without-whether
+					description:
+						'When this option is enabled, the default reminder will be added to the new item if it has a due date with time set',
+				},
+			],
 		},
 		{
 			displayName: 'Sync Commands',
@@ -395,6 +696,60 @@ const versionDescription: INodeTypeDescription = {
 					default: {},
 					description:
 						'The section you want to operate on. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+				},
+				{
+					displayName: 'Order',
+					name: 'order',
+					type: 'number',
+					default: 0,
+					description: 'Non-zero integer used to sort tasks under the same parent',
+				},
+				{
+					displayName: 'Due Date',
+					name: 'dueDate',
+					type: 'string',
+					default: '',
+					placeholder: 'YYYY-MM-DD',
+					description: 'Specific date in YYYY-MM-DD format',
+				},
+				{
+					displayName: 'Assignee ID',
+					name: 'assigneeId',
+					type: 'string',
+					default: '',
+					description: 'Responsible user ID (for shared tasks)',
+				},
+				{
+					displayName: 'Duration',
+					name: 'duration',
+					type: 'number',
+					default: 0,
+					description: 'Positive integer for task duration (must be used with Duration Unit)',
+				},
+				{
+					displayName: 'Duration Unit',
+					name: 'durationUnit',
+					type: 'options',
+					options: [
+						{
+							name: 'Minute',
+							value: 'minute',
+						},
+						{
+							name: 'Day',
+							value: 'day',
+						},
+					],
+					default: 'minute',
+					description: 'Unit of time for duration (must be used with Duration)',
+				},
+				{
+					displayName: 'Deadline Date',
+					name: 'deadlineDate',
+					type: 'string',
+					default: '',
+					placeholder: 'YYYY-MM-DD',
+					description: 'Specific deadline date in YYYY-MM-DD format',
 				},
 			],
 		},
@@ -572,7 +927,8 @@ const versionDescription: INodeTypeDescription = {
 						'2-letter code specifying language in case due_string is not written in English',
 				},
 				{
-					displayName: 'Label Names or IDs',
+					// eslint-disable-next-line n8n-nodes-base/node-param-display-name-wrong-for-dynamic-multi-options
+					displayName: 'Label Names',
 					name: 'labels',
 					type: 'multiOptions',
 					description:
@@ -592,6 +948,535 @@ const versionDescription: INodeTypeDescription = {
 					},
 					default: 1,
 					description: 'Task priority from 1 (normal) to 4 (urgent)',
+				},
+				{
+					displayName: 'Order',
+					name: 'order',
+					type: 'number',
+					default: 0,
+					description: 'Non-zero integer used to sort tasks under the same parent',
+				},
+				{
+					displayName: 'Due Date',
+					name: 'dueDate',
+					type: 'string',
+					default: '',
+					placeholder: 'YYYY-MM-DD',
+					description: 'Specific date in YYYY-MM-DD format',
+				},
+				{
+					displayName: 'Assignee ID',
+					name: 'assigneeId',
+					type: 'string',
+					default: '',
+					description: 'Responsible user ID (for shared tasks)',
+				},
+				{
+					displayName: 'Duration',
+					name: 'duration',
+					type: 'number',
+					default: 0,
+					description: 'Positive integer for task duration (must be used with Duration Unit)',
+				},
+				{
+					displayName: 'Duration Unit',
+					name: 'durationUnit',
+					type: 'options',
+					options: [
+						{
+							name: 'Minute',
+							value: 'minute',
+						},
+						{
+							name: 'Day',
+							value: 'day',
+						},
+					],
+					default: 'minute',
+					description: 'Unit of time for duration (must be used with Duration)',
+				},
+				{
+					displayName: 'Deadline Date',
+					name: 'deadlineDate',
+					type: 'string',
+					default: '',
+					placeholder: 'YYYY-MM-DD',
+					description: 'Specific deadline date in YYYY-MM-DD format',
+				},
+			],
+		},
+		// Project fields
+		{
+			displayName: 'Project ID',
+			name: 'projectId',
+			type: 'string',
+			default: '',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['project'],
+					operation: ['archive', 'delete', 'get', 'getCollaborators', 'unarchive', 'update'],
+				},
+			},
+			description: 'The project ID - can be either a string or number',
+		},
+		{
+			displayName: 'Name',
+			name: 'name',
+			type: 'string',
+			default: '',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['project'],
+					operation: ['create'],
+				},
+			},
+			description: 'Name of the project',
+		},
+		{
+			displayName: 'Additional Fields',
+			name: 'projectOptions',
+			type: 'collection',
+			placeholder: 'Add Field',
+			default: {},
+			displayOptions: {
+				show: {
+					resource: ['project'],
+					operation: ['create'],
+				},
+			},
+			options: [
+				{
+					displayName: 'Color',
+					name: 'color',
+					type: 'options',
+					options: TODOIST_COLOR_OPTIONS,
+					default: '',
+					description: 'The color of the project',
+				},
+				{
+					displayName: 'Is Favorite',
+					name: 'is_favorite',
+					type: 'boolean',
+					default: false,
+					description: 'Whether the project is a favorite',
+				},
+				{
+					displayName: 'Parent ID',
+					name: 'parent_id',
+					type: 'string',
+					default: '',
+					description: 'Parent project ID',
+				},
+				{
+					displayName: 'View Style',
+					name: 'view_style',
+					type: 'options',
+					options: [
+						{
+							name: 'List',
+							value: 'list',
+						},
+						{
+							name: 'Board',
+							value: 'board',
+						},
+					],
+					default: 'list',
+					description: 'The default view style of the project',
+				},
+			],
+		},
+		{
+			displayName: 'Update Fields',
+			name: 'projectUpdateFields',
+			type: 'collection',
+			placeholder: 'Add Field',
+			default: {},
+			displayOptions: {
+				show: {
+					resource: ['project'],
+					operation: ['update'],
+				},
+			},
+			options: [
+				{
+					displayName: 'Name',
+					name: 'name',
+					type: 'string',
+					default: '',
+					description: 'Name of the project',
+				},
+				{
+					displayName: 'Color',
+					name: 'color',
+					type: 'options',
+					options: TODOIST_COLOR_OPTIONS,
+					default: '',
+					description: 'The color of the project',
+				},
+				{
+					displayName: 'Is Favorite',
+					name: 'is_favorite',
+					type: 'boolean',
+					default: false,
+					description: 'Whether the project is a favorite',
+				},
+				{
+					displayName: 'View Style',
+					name: 'view_style',
+					type: 'options',
+					options: [
+						{
+							name: 'List',
+							value: 'list',
+						},
+						{
+							name: 'Board',
+							value: 'board',
+						},
+					],
+					default: 'list',
+					description: 'The default view style of the project',
+				},
+			],
+		},
+		// Section fields
+		{
+			displayName: 'Section ID',
+			name: 'sectionId',
+			type: 'string',
+			default: '',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['section'],
+					operation: ['delete', 'get', 'update'],
+				},
+			},
+		},
+		{
+			displayName: 'Project Name or ID',
+			name: 'sectionProject',
+			type: 'resourceLocator',
+			default: { mode: 'list', value: '' },
+			required: true,
+			modes: [
+				{
+					displayName: 'From List',
+					name: 'list',
+					type: 'list',
+					placeholder: 'Select a project...',
+					typeOptions: {
+						searchListMethod: 'searchProjects',
+						searchable: true,
+					},
+				},
+				{
+					displayName: 'ID',
+					name: 'id',
+					type: 'string',
+					placeholder: '2302163813',
+				},
+			],
+			displayOptions: {
+				show: {
+					resource: ['section'],
+					operation: ['create'],
+				},
+			},
+			description: 'The project to add the section to',
+		},
+		{
+			displayName: 'Name',
+			name: 'sectionName',
+			type: 'string',
+			default: '',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['section'],
+					operation: ['create'],
+				},
+			},
+			description: 'Name of the section',
+		},
+		{
+			displayName: 'Additional Fields',
+			name: 'sectionOptions',
+			type: 'collection',
+			placeholder: 'Add Field',
+			default: {},
+			displayOptions: {
+				show: {
+					resource: ['section'],
+					operation: ['create'],
+				},
+			},
+			options: [
+				{
+					displayName: 'Order',
+					name: 'order',
+					type: 'number',
+					default: 0,
+					description: 'The order of the section',
+				},
+			],
+		},
+		{
+			displayName: 'Update Fields',
+			name: 'sectionUpdateFields',
+			type: 'collection',
+			placeholder: 'Add Field',
+			default: {},
+			displayOptions: {
+				show: {
+					resource: ['section'],
+					operation: ['update'],
+				},
+			},
+			options: [
+				{
+					displayName: 'Name',
+					name: 'name',
+					type: 'string',
+					default: '',
+					description: 'Name of the section',
+				},
+			],
+		},
+		{
+			displayName: 'Filters',
+			name: 'sectionFilters',
+			type: 'collection',
+			placeholder: 'Add Filter',
+			default: {},
+			displayOptions: {
+				show: {
+					resource: ['section'],
+					operation: ['getAll'],
+				},
+			},
+			options: [
+				{
+					displayName: 'Project Name or ID',
+					name: 'project_id',
+					type: 'options',
+					typeOptions: {
+						loadOptionsMethod: 'getProjects',
+					},
+					default: '',
+					description:
+						'Filter sections by project. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+				},
+			],
+		},
+		// Comment fields
+		{
+			displayName: 'Comment ID',
+			name: 'commentId',
+			type: 'string',
+			default: '',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['comment'],
+					operation: ['delete', 'get', 'update'],
+				},
+			},
+		},
+		{
+			displayName: 'Task ID',
+			name: 'commentTaskId',
+			type: 'string',
+			default: '',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['comment'],
+					operation: ['create'],
+				},
+			},
+			description: 'The ID of the task to comment on',
+		},
+		{
+			displayName: 'Content',
+			name: 'commentContent',
+			type: 'string',
+			typeOptions: {
+				rows: 3,
+			},
+			default: '',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['comment'],
+					operation: ['create'],
+				},
+			},
+			description: 'Comment content',
+		},
+		{
+			displayName: 'Update Fields',
+			name: 'commentUpdateFields',
+			type: 'collection',
+			placeholder: 'Add Field',
+			default: {},
+			displayOptions: {
+				show: {
+					resource: ['comment'],
+					operation: ['update'],
+				},
+			},
+			options: [
+				{
+					displayName: 'Content',
+					name: 'content',
+					type: 'string',
+					typeOptions: {
+						rows: 3,
+					},
+					default: '',
+					description: 'Comment content',
+				},
+			],
+		},
+		{
+			displayName: 'Filters',
+			name: 'commentFilters',
+			type: 'collection',
+			placeholder: 'Add Filter',
+			default: {},
+			displayOptions: {
+				show: {
+					resource: ['comment'],
+					operation: ['getAll'],
+				},
+			},
+			options: [
+				{
+					displayName: 'Task ID',
+					name: 'task_id',
+					type: 'string',
+					default: '',
+					description: 'Filter comments by task ID',
+				},
+				{
+					displayName: 'Project ID',
+					name: 'project_id',
+					type: 'string',
+					default: '',
+					description: 'Filter comments by project ID',
+				},
+			],
+		},
+		// Label fields
+		{
+			displayName: 'Label ID',
+			name: 'labelId',
+			type: 'string',
+			default: '',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['label'],
+					operation: ['delete', 'get', 'update'],
+				},
+			},
+		},
+		{
+			displayName: 'Name',
+			name: 'labelName',
+			type: 'string',
+			default: '',
+			required: true,
+			displayOptions: {
+				show: {
+					resource: ['label'],
+					operation: ['create'],
+				},
+			},
+			description: 'Name of the label',
+		},
+		{
+			displayName: 'Additional Fields',
+			name: 'labelOptions',
+			type: 'collection',
+			placeholder: 'Add Field',
+			default: {},
+			displayOptions: {
+				show: {
+					resource: ['label'],
+					operation: ['create'],
+				},
+			},
+			options: [
+				{
+					displayName: 'Color',
+					name: 'color',
+					type: 'options',
+					options: TODOIST_COLOR_OPTIONS,
+					default: '',
+					description: 'The color of the label',
+				},
+				{
+					displayName: 'Order',
+					name: 'order',
+					type: 'number',
+					default: 0,
+					description: 'Label order',
+				},
+				{
+					displayName: 'Is Favorite',
+					name: 'is_favorite',
+					type: 'boolean',
+					default: false,
+					description: 'Whether the label is a favorite',
+				},
+			],
+		},
+		{
+			displayName: 'Update Fields',
+			name: 'labelUpdateFields',
+			type: 'collection',
+			placeholder: 'Add Field',
+			default: {},
+			displayOptions: {
+				show: {
+					resource: ['label'],
+					operation: ['update'],
+				},
+			},
+			options: [
+				{
+					displayName: 'Name',
+					name: 'name',
+					type: 'string',
+					default: '',
+					description: 'Name of the label',
+				},
+				{
+					displayName: 'Color',
+					name: 'color',
+					type: 'options',
+					options: TODOIST_COLOR_OPTIONS,
+					default: '',
+					description: 'The color of the label',
+				},
+				{
+					displayName: 'Order',
+					name: 'order',
+					type: 'number',
+					default: 0,
+					description: 'Label order',
+				},
+				{
+					displayName: 'Is Favorite',
+					name: 'is_favorite',
+					type: 'boolean',
+					default: false,
+					description: 'Whether the label is a favorite',
 				},
 			],
 		},
@@ -737,11 +1622,43 @@ export class TodoistV2 implements INodeType {
 		const service = new TodoistService();
 		let responseData;
 		const resource = this.getNodeParameter('resource', 0);
-		const operation = this.getNodeParameter('operation', 0) as OperationType;
+		const operation = this.getNodeParameter('operation', 0) as TaskOperationType;
 		for (let i = 0; i < length; i++) {
 			try {
 				if (resource === 'task') {
-					responseData = await service.execute(this, operation, i);
+					responseData = await service.executeTask(this, operation, i);
+				} else if (resource === 'project') {
+					if (!isProjectOperationType(operation)) {
+						throw new NodeOperationError(
+							this.getNode(),
+							`Invalid operation '${operation}' for project resource`,
+						);
+					}
+					responseData = await service.executeProject(this, operation, i);
+				} else if (resource === 'section') {
+					if (!isSectionOperationType(operation)) {
+						throw new NodeOperationError(
+							this.getNode(),
+							`Invalid operation '${operation}' for section resource`,
+						);
+					}
+					responseData = await service.executeSection(this, operation, i);
+				} else if (resource === 'comment') {
+					if (!isCommentOperationType(operation)) {
+						throw new NodeOperationError(
+							this.getNode(),
+							`Invalid operation '${operation}' for comment resource`,
+						);
+					}
+					responseData = await service.executeComment(this, operation, i);
+				} else if (resource === 'label') {
+					if (!isLabelOperationType(operation)) {
+						throw new NodeOperationError(
+							this.getNode(),
+							`Invalid operation '${operation}' for label resource`,
+						);
+					}
+					responseData = await service.executeLabel(this, operation, i);
 				}
 
 				if (responseData !== undefined && Array.isArray(responseData?.data)) {
