@@ -1,13 +1,14 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
-# Устанавливаем необходимые зависимости
+# Устанавливаем зависимости
 RUN apk add --no-cache bash python3 make g++ git
 
-# Устанавливаем n8n через npm
+# Устанавливаем n8n
 RUN npm install -g n8n@latest
 
-# Создаем рабочую директорию
+# Рабочая директория
 WORKDIR /data
 
-# Запускаем n8n
+# Порт и запуск
+EXPOSE 5678
 CMD ["n8n", "start"]
