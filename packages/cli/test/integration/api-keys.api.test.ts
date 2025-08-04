@@ -304,7 +304,7 @@ describe('Owner shell', () => {
 
 		const scopes = apiKeyScopesResponse.body.data as ApiKeyScope[];
 
-		const scopesForRole = getApiKeyScopesForRole(ownerShell.role);
+		const scopesForRole = getApiKeyScopesForRole(ownerShell);
 
 		expect(scopes).toEqual(scopesForRole);
 	});
@@ -317,7 +317,7 @@ describe('Member', () => {
 	beforeEach(async () => {
 		member = await createUser({
 			password: memberPassword,
-			role: 'global:member',
+			role: { slug: 'global:member' },
 		});
 		await utils.setInstanceOwnerSetUp(true);
 	});
@@ -492,7 +492,7 @@ describe('Member', () => {
 
 		const scopes = apiKeyScopesResponse.body.data as ApiKeyScope[];
 
-		const scopesForRole = getApiKeyScopesForRole(member.role);
+		const scopesForRole = getApiKeyScopesForRole(member);
 
 		expect(scopes).toEqual(scopesForRole);
 	});

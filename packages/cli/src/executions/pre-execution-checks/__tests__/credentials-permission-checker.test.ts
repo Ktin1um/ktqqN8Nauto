@@ -93,7 +93,7 @@ describe('CredentialsPermissionChecker', () => {
 	});
 
 	it('should skip credential checks if the home project owner has global scope', async () => {
-		const projectOwner = mock<User>({ role: 'global:owner' });
+		const projectOwner = mock<User>({ role: { slug: 'global:owner' } });
 		ownershipService.getPersonalProjectOwnerCached.mockResolvedValueOnce(projectOwner);
 
 		await expect(permissionChecker.check(workflowId, [node])).resolves.not.toThrow();

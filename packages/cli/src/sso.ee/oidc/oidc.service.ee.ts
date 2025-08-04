@@ -138,7 +138,7 @@ export class OidcService {
 					lastName: userInfo.family_name,
 					email: userInfo.email,
 					authIdentities: [],
-					role: 'global:member',
+					role: { slug: 'global:member' },
 					password: 'no password set',
 				},
 				trx,

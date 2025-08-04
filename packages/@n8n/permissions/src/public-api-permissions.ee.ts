@@ -1,4 +1,4 @@
-import type { ApiKeyScope, GlobalRole } from './types.ee';
+import { isApiKeyScope, type ApiKeyScope, type AuthPrincipal, type GlobalRole } from './types.ee';
 
 export const OWNER_API_KEY_SCOPES: ApiKeyScope[] = [
 	'user:read',
@@ -71,8 +71,8 @@ const MAP_ROLE_SCOPES: Record<GlobalRole, ApiKeyScope[]> = {
 	'global:member': MEMBER_API_KEY_SCOPES,
 };
 
-export const getApiKeyScopesForRole = (role: GlobalRole) => {
-	return MAP_ROLE_SCOPES[role];
+export const getApiKeyScopesForRole = (user: AuthPrincipal) => {
+	return user.role.scopes.map((scope) => scope.slug).filter(isApiKeyScope);
 };
 
 export const getOwnerOnlyApiKeyScopes = () => {

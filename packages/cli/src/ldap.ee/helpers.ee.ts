@@ -7,6 +7,7 @@ import {
 	AuthIdentityRepository,
 	AuthProviderSyncHistoryRepository,
 	UserRepository,
+	GLOBAL_MEMBER_ROLE,
 } from '@n8n/db';
 import { Container } from '@n8n/di';
 import { validate } from 'jsonschema';
@@ -150,7 +151,7 @@ export const mapLdapUserToDbUser = (
 	const [ldapId, data] = mapLdapAttributesToUser(ldapUser, ldapConfig);
 	Object.assign(user, data);
 	if (toCreate) {
-		user.role = 'global:member';
+		user.role = GLOBAL_MEMBER_ROLE;
 		user.password = randomString(8);
 		user.disabled = false;
 	} else {
@@ -270,7 +271,7 @@ export const createLdapAuthIdentity = async (user: User, ldapId: string) => {
 export const createLdapUserOnLocalDb = async (data: Partial<User>, ldapId: string) => {
 	const { user } = await Container.get(UserRepository).createUserWithProject({
 		password: randomString(8),
-		role: 'global:member',
+		role: { slug: 'global:member' },
 		...data,
 	});
 	await createLdapAuthIdentity(user, ldapId);

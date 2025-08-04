@@ -139,7 +139,7 @@ describe('Member', () => {
 	beforeEach(async () => {
 		member = await createUser({
 			password: memberPassword,
-			role: 'global:member',
+			role: { slug: 'global:member' },
 		});
 		authMemberAgent = testServer.authAgentFor(member);
 		await utils.setInstanceOwnerSetUp(true);
@@ -243,7 +243,7 @@ describe('Member', () => {
 
 describe('Owner', () => {
 	test('PATCH /me should succeed with valid inputs', async () => {
-		const owner = await createUser({ role: 'global:owner' });
+		const owner = await createUser({ role: { slug: 'global:owner' } });
 		const authOwnerAgent = testServer.authAgentFor(owner);
 
 		for (const validPayload of VALID_PATCH_ME_PAYLOADS) {

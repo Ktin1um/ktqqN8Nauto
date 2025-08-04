@@ -1,5 +1,12 @@
 import { randomEmail, randomName, randomValidPassword } from '@n8n/backend-test-utils';
-import { AuthIdentity, AuthIdentityRepository, UserRepository } from '@n8n/db';
+import {
+	AuthIdentity,
+	AuthIdentityRepository,
+	GLOBAL_ADMIN_ROLE,
+	GLOBAL_MEMBER_ROLE,
+	GLOBAL_OWNER_ROLE,
+	UserRepository,
+} from '@n8n/db';
 import { type User } from '@n8n/db';
 import { Container } from '@n8n/di';
 import type { ApiKeyScope, GlobalRole } from '@n8n/permissions';
@@ -9,6 +16,7 @@ import { hash } from 'bcryptjs';
 import { MfaService } from '@/mfa/mfa.service';
 import { TOTPService } from '@/mfa/totp.service';
 import { PublicApiKeyService } from '@/services/public-api-key.service';
+import type { DeepPartial } from '@n8n/typeorm';
 
 type ApiKeyOptions = {
 	expiresAt?: number | null;
@@ -32,26 +40,26 @@ async function handlePasswordSetup(password: string | null | undefined): Promise
 }
 
 /** Store a new user object, defaulting to a `member` */
-export async function newUser(attributes: Partial<User> = {}): Promise<User> {
+export async function newUser(attributes: DeepPartial<User> = {}): Promise<User> {
 	const { email, password, firstName, lastName, role, ...rest } = attributes;
 	return Container.get(UserRepository).create({
 		email: email ?? randomEmail(),
 		password: await handlePasswordSetup(password),
 		firstName: firstName ?? randomName(),
 		lastName: lastName ?? randomName(),
-		role: role ?? 'global:member',
+		role: role ?? GLOBAL_MEMBER_ROLE,
 		...rest,
 	});
 }
 
 /** Store a user object in the DB */
-export async function createUser(attributes: Partial<User> = {}): Promise<User> {
+export async function createUser(attributes: DeepPartial<User> = {}): Promise<User> {
 	const userInstance = await newUser(attributes);
 	const { user } = await Container.get(UserRepository).createUserWithProject(userInstance);
 	return user;
 }
 
-export async function createLdapUser(attributes: Partial<User>, ldapId: string): Promise<User> {
+export async function createLdapUser(attributes: DeepPartial<User>, ldapId: string): Promise<User> {
 	const user = await createUser(attributes);
 	await Container.get(AuthIdentityRepository).save(AuthIdentity.create(user, ldapId, 'ldap'));
 	return user;
@@ -105,7 +113,7 @@ export const addApiKey = async (
 	return await Container.get(PublicApiKeyService).createPublicApiKeyForUser(user, {
 		label: randomName(),
 		expiresAt,
-		scopes: scopes.length ? scopes : getApiKeyScopesForRole(user.role),
+		scopes: scopes.length ? scopes : getApiKeyScopesForRole(user),
 	});
 };
 
@@ -134,19 +142,19 @@ export async function createAdminWithApiKey({ expiresAt = null, scopes = [] }: A
 }
 
 export async function createOwner() {
-	return await createUser({ role: 'global:owner' });
+	return await createUser({ role: GLOBAL_OWNER_ROLE });
 }
 
 export async function createMember() {
-	return await createUser({ role: 'global:member' });
+	return await createUser({ role: GLOBAL_MEMBER_ROLE });
 }
 
 export async function createAdmin() {
-	return await createUser({ role: 'global:admin' });
+	return await createUser({ role: GLOBAL_ADMIN_ROLE });
 }
 
 export async function createUserShell(role: GlobalRole): Promise<User> {
-	const shell: Partial<User> = { role };
+	const shell: DeepPartial<User> = { role: { slug: role } };
 
 	if (role !== 'global:owner') {
 		shell.email = randomEmail();
@@ -161,7 +169,7 @@ export async function createUserShell(role: GlobalRole): Promise<User> {
  */
 export async function createManyUsers(
 	amount: number,
-	attributes: Partial<User> = {},
+	attributes: DeepPartial<User> = {},
 ): Promise<User[]> {
 	const result = await Promise.all(
 		Array(amount)
@@ -192,5 +200,5 @@ export const getLdapIdentities = async () =>
 	});
 
 export async function getGlobalOwner() {
-	return await Container.get(UserRepository).findOneByOrFail({ role: 'global:owner' });
+	return await Container.get(UserRepository).findOneByOrFail({ role: { slug: 'global:owner' } });
 }

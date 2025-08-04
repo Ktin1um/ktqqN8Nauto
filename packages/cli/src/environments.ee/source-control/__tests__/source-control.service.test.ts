@@ -149,8 +149,9 @@ describe('SourceControlService', () => {
 	describe('getStatus', () => {
 		it('ensure updatedAt field for last deleted tag', async () => {
 			// ARRANGE
-			const user = mock<User>();
-			user.role = 'global:admin';
+			const user = mock<User>({
+				role: { slug: 'global:admin' },
+			});
 
 			sourceControlImportService.getRemoteVersionIdsFromFiles.mockResolvedValue([]);
 			sourceControlImportService.getLocalVersionIdsFromDb.mockResolvedValue([]);
@@ -204,8 +205,9 @@ describe('SourceControlService', () => {
 
 		it('ensure updatedAt field for last deleted folder', async () => {
 			// ARRANGE
-			const user = mock<User>();
-			user.role = 'global:admin';
+			const user = mock<User>({
+				role: { slug: 'global:admin' },
+			});
 
 			sourceControlImportService.getRemoteVersionIdsFromFiles.mockResolvedValue([]);
 			sourceControlImportService.getLocalVersionIdsFromDb.mockResolvedValue([]);
@@ -262,8 +264,9 @@ describe('SourceControlService', () => {
 
 		it('conflict depends on the value of `direction`', async () => {
 			// ARRANGE
-			const user = mock<User>();
-			user.role = 'global:admin';
+			const user = mock<User>({
+				role: { slug: 'global:admin' },
+			});
 
 			// Define a credential that does only exist locally.
 			// Pulling this would delete it so it should be marked as a conflict.
@@ -368,8 +371,9 @@ describe('SourceControlService', () => {
 
 		it('should throw `ForbiddenError` if direction is pull and user is not allowed to globally pull', async () => {
 			// ARRANGE
-			const user = mock<User>();
-			user.role = 'global:member';
+			const user = mock<User>({
+				role: { slug: 'global:member' },
+			});
 
 			// ACT
 			await expect(
@@ -387,7 +391,7 @@ describe('SourceControlService', () => {
 			'should return file content for $type',
 			async ({ type, id, content }) => {
 				jest.spyOn(gitService, 'getFileContent').mockResolvedValue(content);
-				const user = mock<User>({ id: 'user-id', role: 'global:admin' });
+				const user = mock<User>({ id: 'user-id', role: { slug: 'global:admin' } });
 
 				const result = await sourceControlService.getRemoteFileEntity({ user, type, id });
 
@@ -398,7 +402,7 @@ describe('SourceControlService', () => {
 		it.each<SourceControlledFile['type']>(['folders', 'credential', 'tags', 'variables'])(
 			'should throw an error if the file type is not handled',
 			async (type) => {
-				const user = mock<User>({ id: 'user-id', role: 'global:admin' });
+				const user = mock<User>({ id: 'user-id', role: { slug: 'global:admin' } });
 				await expect(
 					sourceControlService.getRemoteFileEntity({ user, type, id: 'unknown' }),
 				).rejects.toThrow(`Unsupported file type: ${type}`);
@@ -407,7 +411,7 @@ describe('SourceControlService', () => {
 
 		it('should fail if the git service fails to get the file content', async () => {
 			jest.spyOn(gitService, 'getFileContent').mockRejectedValue(new Error('Git service error'));
-			const user = mock<User>({ id: 'user-id', role: 'global:admin' });
+			const user = mock<User>({ id: 'user-id', role: { slug: 'global:admin' } });
 
 			await expect(
 				sourceControlService.getRemoteFileEntity({ user, type: 'workflow', id: '1234' }),
@@ -417,7 +421,7 @@ describe('SourceControlService', () => {
 		it('should throw an error if the user does not have access to the project', async () => {
 			const user = mock<User>({
 				id: 'user-id',
-				role: 'global:member',
+				role: { slug: 'global:member' },
 			});
 			jest
 				.spyOn(sourceControlScopedService, 'getWorkflowsInAdminProjectsFromContext')
@@ -429,7 +433,7 @@ describe('SourceControlService', () => {
 		});
 
 		it('should return content for an authorized workflow', async () => {
-			const user = mock<User>({ id: 'user-id', role: 'global:member' });
+			const user = mock<User>({ id: 'user-id', role: { slug: 'global:member' } });
 			jest
 				.spyOn(sourceControlScopedService, 'getWorkflowsInAdminProjectsFromContext')
 				.mockResolvedValue([{ id: '1234' } as WorkflowEntity]);

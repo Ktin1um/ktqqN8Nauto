@@ -116,7 +116,7 @@ describe('InvitationController', () => {
 		test('should fail with invalid payloads', async () => {
 			const memberShell = await userRepository.save({
 				email: randomEmail(),
-				role: 'global:member',
+				role: { slug: 'global:member' },
 			});
 
 			const invalidPaylods = [

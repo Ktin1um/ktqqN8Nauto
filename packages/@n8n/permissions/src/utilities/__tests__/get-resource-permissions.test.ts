@@ -128,6 +128,8 @@ describe('permissions', () => {
 			insights: {
 				list: true,
 			},
+			execution: {},
+			workflowTags: {},
 		};
 
 		expect(getResourcePermissions(scopes)).toEqual(permissionRecord);
